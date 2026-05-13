@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BarcodeGenerator.Avalonia/BarcodeGenerator.Avalonia.csproj" />
+    <Project Path="src/BarcodeGenerator.Console/BarcodeGenerator.Console.csproj" />
+    <Project Path="src/BarcodeGenerator.Core/BarcodeGenerator.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BarcodeGenerator.Core.Tests/BarcodeGenerator.Core.Tests.csproj" />
+  </Folder>
+</Solution>

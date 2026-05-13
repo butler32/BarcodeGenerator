@@ -1,0 +1,172 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:BarcodeGenerator.Avalonia.ViewModels"
+             xmlns:models="using:BarcodeGenerator.Avalonia.Models"
+             xmlns:views="using:BarcodeGenerator.Avalonia.Views"
+             x:Class="BarcodeGenerator.Avalonia.Views.MultiBarcodesView"
+             x:DataType="vm:MultiBarcodesTabsViewModel"
+             Focusable="True">
+
+  <DockPanel>
+
+    <!-- Sub-tab strip -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="4,4,4,0">
+      <TabStrip Grid.Column="0"
+                ItemsSource="{Binding Tabs}"
+                SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+        <TabStrip.ItemTemplate>
+          <DataTemplate x:DataType="vm:MultiBarcodesViewModel">
+            <StackPanel Orientation="Horizontal" Spacing="2" Margin="2,0">
+              <!-- Read mode -->
+              <TextBlock Text="{Binding TabName}"
+                         VerticalAlignment="Center" Padding="4,1"
+                         IsVisible="{Binding IsRenaming, Converter={x:Static BoolConverters.Not}}" />
+              <Button Content="✏"
+                      Command="{Binding StartRenameCommand}"
+                      Padding="3,0" FontSize="10"
+                      VerticalAlignment="Center"
+                      IsVisible="{Binding IsRenaming, Converter={x:Static BoolConverters.Not}}"
+                      ToolTip.Tip="Переименовать вкладку" />
+              <!-- Edit mode -->
+              <TextBox Text="{Binding TabName}"
+                       BorderThickness="1" Padding="4,1"
+                       MinWidth="60" MaxWidth="180"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding IsRenaming}" />
+              <Button Content="✓"
+                      Command="{Binding ConfirmRenameCommand}"
+                      Padding="3,0" FontSize="10"
+                      VerticalAlignment="Center"
+                      IsVisible="{Binding IsRenaming}"
+                      ToolTip.Tip="Сохранить название" />
+              <!-- Always visible -->
+              <Button Content="✕"
+                      Command="{Binding RequestCloseCommand}"
+                      Padding="3,0" FontSize="10"
+                      VerticalAlignment="Center"
+                      ToolTip.Tip="Закрыть вкладку" />
+            </StackPanel>
+          </DataTemplate>
+        </TabStrip.ItemTemplate>
+      </TabStrip>
+      <Button Grid.Column="1" Content="+"
+              Command="{Binding AddTabCommand}"
+              Padding="10,4" VerticalAlignment="Center"
+              ToolTip.Tip="Новая вкладка" />
+    </Grid>
+
+    <Separator DockPanel.Dock="Top" Margin="0,0,0,0" />
+
+    <!-- Content of the selected sub-tab -->
+    <ContentControl Content="{Binding SelectedTab}">
+      <ContentControl.ContentTemplate>
+        <DataTemplate x:DataType="vm:MultiBarcodesViewModel">
+
+          <ScrollViewer>
+            <StackPanel>
+
+              <!-- Inputs -->
+              <StackPanel Spacing="8" Margin="16,12,16,8">
+
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" HorizontalAlignment="Left">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="Формат:" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                  <ComboBox Grid.Row="0" Grid.Column="1"
+                            ItemsSource="{Binding AvailableFormats}"
+                            SelectedItem="{Binding SelectedFormat}"
+                            MinWidth="180" Margin="0,0,0,4"/>
+
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Размер ячейки (px):" VerticalAlignment="Center" Margin="0,0,8,4"/>
+                  <NumericUpDown Grid.Row="1" Grid.Column="1"
+                                 Value="{Binding ModuleSize}"
+                                 Minimum="2" Maximum="40" Increment="1"
+                                 MinWidth="120" Margin="0,0,0,4"/>
+                </Grid>
+
+                <TextBlock Text="Коды (по одному на строку):" />
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBox Grid.Column="0"
+                           Text="{Binding InputData}"
+                           Watermark="CODE001&#10;CODE002&#10;CODE003"
+                           AcceptsReturn="True"
+                           MinHeight="90"
+                           TextWrapping="Wrap" />
+                  <Button Grid.Column="1"
+                          Content="GS" Margin="4,0,0,0"
+                          VerticalAlignment="Top"
+                          Focusable="False"
+                          Click="OnInsertGsClick"
+                          ToolTip.Tip="Вставить символ GS (разделитель групп, 0x1D)" />
+                </Grid>
+
+                <Button Content="Сгенерировать" Command="{Binding GenerateCommand}"
+                        HorizontalAlignment="Left" />
+
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="Red" TextWrapping="Wrap"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="16"
+                            IsVisible="{Binding Results.Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <RadioButton Content="По одному" IsChecked="{Binding IsListMode, Converter={x:Static BoolConverters.Not}}" />
+                  <RadioButton Content="Список" IsChecked="{Binding IsListMode}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="8"
+                            IsVisible="{Binding Results.Count, Converter={x:Static ObjectConverters.IsNotNull}}">
+                  <Button Content="Сохранить текущий" Command="{Binding SaveCurrentCommand}" />
+                  <Button Content="Сохранить все" Command="{Binding SaveAllCommand}" />
+                  <Button Content="Сохранить стрип" Command="{Binding SaveStripCommand}" />
+                </StackPanel>
+
+              </StackPanel>
+
+              <!-- LIST MODE -->
+              <ItemsControl IsVisible="{Binding IsListMode}"
+                            ItemsSource="{Binding Results}" Margin="16,0,16,16">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="models:BarcodeDisplayItem">
+                    <Border BorderBrush="{DynamicResource SystemBaseLowColor}"
+                            BorderThickness="1" CornerRadius="4"
+                            Padding="8" Margin="0,4,0,4">
+                      <StackPanel Spacing="4">
+                        <Image Source="{Binding Bitmap}"
+                               MaxWidth="300" MaxHeight="300"
+                               HorizontalAlignment="Left"
+                               RenderOptions.BitmapInterpolationMode="None" />
+                        <TextBlock Text="{Binding Data}" FontSize="11" Foreground="Gray" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <!-- SINGLE MODE -->
+              <StackPanel IsVisible="{Binding IsListMode, Converter={x:Static BoolConverters.Not}}"
+                          HorizontalAlignment="Center"
+                          Spacing="8" Margin="16,8">
+
+                <TextBlock Text="{Binding CurrentInfo}"
+                           HorizontalAlignment="Center"
+                           FontSize="13" Foreground="Gray" />
+
+                <views:ResizableImageControl
+                        BitmapSource="{Binding CurrentItem.Bitmap}"
+                        ImageSize="{Binding PreviewSize, Mode=TwoWay}"
+                        IsVisible="{Binding CurrentItem, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                  <Button Content="&lt;" Command="{Binding PrevCommand}" Width="48" />
+                  <Button Content="&gt;" Command="{Binding NextCommand}" Width="48" />
+                </StackPanel>
+
+              </StackPanel>
+
+            </StackPanel>
+          </ScrollViewer>
+
+        </DataTemplate>
+      </ContentControl.ContentTemplate>
+    </ContentControl>
+
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="BarcodeGenerator.Avalonia.Views.ResizableImageControl">
+
+  <!-- No x:DataType — internal bindings are wired in code-behind via OnPropertyChanged -->
+  <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+
+    <Border BorderBrush="{DynamicResource SystemBaseLowColor}"
+            BorderThickness="1" CornerRadius="4" Padding="12"
+            HorizontalAlignment="Left" VerticalAlignment="Top">
+      <Image x:Name="PART_Image"
+             RenderOptions.BitmapInterpolationMode="None"
+             HorizontalAlignment="Left" VerticalAlignment="Top" />
+    </Border>
+
+    <!-- Resize grip — bottom-right corner, diagonal lines like a classic OS grip -->
+    <Border x:Name="PART_Grip"
+            Width="16" Height="16"
+            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+            Background="Transparent"
+            PointerPressed="OnGripPointerPressed"
+            PointerMoved="OnGripPointerMoved"
+            PointerReleased="OnGripPointerReleased">
+      <Path Data="M 2,14 L 14,2 M 6,14 L 14,6 M 10,14 L 14,10"
+            Stroke="{DynamicResource SystemBaseMediumColor}"
+            StrokeThickness="1.5"
+            StrokeLineCap="Round" />
+    </Border>
+
+  </Grid>
+</UserControl>
